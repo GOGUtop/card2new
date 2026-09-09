@@ -1,7 +1,7 @@
 {
   "name": "消息文字选择",
-  "description": "保留原长按菜单，点击自由选择文字后进入全屏原生选字页面。",
-  "version": "1.1.0",
+  "description": "保留原长按菜单，在原帖子正文位置选字；需要配套的 Discord 277 原生选字模块。",
+  "version": "1.2.0",
   "authors": [
     {
       "name": "GOGUtop",
@@ -12,5 +12,5 @@
   "vendetta": {
     "icon": "ic_copy_message"
   },
-  "hash": "275c869cf1d989a9bec61042d83a207fee3bcb1c14cb3a652a693ef4f46517ed"
+  "hash": "6c000ac01828ad14009f381fadefda3ca03051c6a83beda302b503b651da1aec"
 }
