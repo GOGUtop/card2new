@@ -1,0 +1,17 @@
+{
+  "id": "gogutop.unbound.zhcn",
+  "type": "plugin",
+  "name": "Unbound 简体中文",
+  "description": "Unbound 设置、安装和管理界面的离线简体中文翻译。",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "GOGUtop",
+      "id": "0"
+    }
+  ],
+  "icon": "LanguageIcon",
+  "main": "index.js",
+  "updates": "https://gogutop.github.io/card2new/unbound-zh-cn/manifest.json",
+  "hash": "a309373a968844b2cff1be842712ad59a0ca39ccff6d6712960c3ffe295216fa"
+}
