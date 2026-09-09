@@ -1,0 +1,16 @@
+{
+  "name": "Discord 简体中文恢复",
+  "version": "1.0.0",
+  "description": "Discord 277 简体中文界面的离线词条兜底，不修改 Bunny 框架或聊天正文。",
+  "authors": [
+    {
+      "name": "Local CardVault integration",
+      "id": "0"
+    }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "GlobeEarthIcon"
+  },
+  "hash": "4837450b1c6fae06a8b57c3e7a7aeefc9fd0a1030ff1c4a42dd6e0e384a7407b"
+}
