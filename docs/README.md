@@ -1,6 +1,14 @@
 # CardVault Upload for Bunny
 
-Bunny / Vendetta 插件，版本 1.1.1。将 Discord 的 PNG 和 JSON 附件保存到 CardVault。
+Bunny / Vendetta 插件，版本 1.1.2。将 Discord 的 PNG 和 JSON 附件保存到 CardVault。
+
+## 1.1.2 图片菜单位置调整
+
+PNG 上传入口改为图片预览右上角的“…”弹出菜单，与 Save、Share、Open in Browser 并列，排列在 Save 后面；移除 PNG 在消息长按菜单中的入口。JSON 附件继续使用消息长按菜单，也可在插件设置中粘贴附件链接上传。
+
+新菜单适配使用 `useMediaShareActions` 获取当前图片，并通过 `ContextMenu` 的原生菜单项添加操作。通过图片操作回调关联来源，不使用全局“最后一张图片”，避免同时存在多个查看器时串图。普通 Save 保持保存到相册的行为。
+
+这一版本的原生菜单适配已通过本地模拟测试，仍需在实际手机版本确认显示；若手机上没有入口，请提供 Discord 版本和图片菜单截图。
 
 ## 1.1.1 修复说明
 
@@ -33,7 +41,7 @@ https://你的GitHub用户名.github.io/cardvault-bunny/
 
 ## 使用
 
-- PNG：打开 Discord 图片的操作菜单，选择“保存到 CardVault”。
+- PNG：打开图片预览，点右上角“…”菜单，在 Save 下方选择“保存到 CardVault”。消息长按菜单不再显示 PNG 的入口。
 - JSON：长按含 JSON 附件的消息，使用“保存到 CardVault”。多附件会列出各自文件名。
 - 如果当前 Discord 版本菜单没有显示该项：复制 PNG / JSON 附件的直接下载链接，在插件设置的“附件链接上传”中粘贴后上传。需要附件链接，不能使用消息跳转链接。
 - 插件设置可以查看登录状态、“检查连接”，或修改 CardVault API 地址。

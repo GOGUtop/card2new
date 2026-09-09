@@ -5,8 +5,10 @@ import { Forms } from "@vendetta/ui/components";
 import { storage } from "@vendetta/plugin";
 import { useProxy } from "@vendetta/storage";
 import { showToast } from "@vendetta/ui/toasts";
+import { getAssetIDByName } from "@vendetta/ui/assets";
 import { ACCOUNT, DEFAULT_API_URL, CardVaultClient, filenameFromUrl, normalizeBase, supported } from "./client";
 import type { MediaSource } from "./client";
+import { createMediaMenuAdapter } from "./media-menu";
 
 const { FormInput, FormRow, FormSection } = Forms;
 const ActionSheet = findByProps("openLazy", "hideActionSheet");
@@ -18,6 +20,30 @@ let foreground: { remove(): void } | undefined;
 const cleanups = new Set<() => void>();
 let patchedModules = new WeakSet<object>();
 const uploads = new Set<string>();
+
+function installMediaMenu() {
+    const mediaActions = findByProps("useMediaShareActions");
+    const menus = findByProps("ContextMenu");
+    if (!mediaActions?.useMediaShareActions) return;
+    let icon: number | undefined;
+    try { icon = getAssetIDByName("ic_upload"); } catch {}
+    const adapter = createMediaMenuAdapter(source => { void save(source); }, icon);
+    cleanups.add(() => adapter.clear());
+    cleanups.add(after("useMediaShareActions", mediaActions, ([props], result) => {
+        if (!running) return result;
+        try { return adapter.capture(props, result); }
+        catch { return result; }
+    }));
+    const patchMenu = (target: any, method: string) => {
+        cleanups.add(before(method, target, args => {
+            try { if (running) args[0] = adapter.decorate(args[0]); }
+            catch { /* Preserve Discord's menu if its internal shape changes. */ }
+        }));
+    };
+    if (typeof menus?.ContextMenu === "function") patchMenu(menus, "ContextMenu");
+    else if (typeof menus?.ContextMenu?.render === "function") patchMenu(menus.ContextMenu, "render");
+    else if (typeof menus?.ContextMenu?.type === "function") patchMenu(menus.ContextMenu, "type");
+}
 
 function config() {
     storage.apiUrl ??= DEFAULT_API_URL;
@@ -66,7 +92,7 @@ function sourcesFromMessageSheet(props: any): MediaSource[] {
         url: attachment.url,
         filename: attachment.filename || filenameFromUrl(attachment.url),
         size: attachment.size,
-    })).filter(supported);
+    })).filter(supported).filter((source: MediaSource) => /\.json$/i.test(source.filename));
 }
 
 async function save(source: MediaSource) {
@@ -140,6 +166,8 @@ export const onLoad = () => {
     if ("password" in storage) delete storage.password;
     if ("username" in storage) delete storage.username;
     config();
+    try { installMediaMenu(); }
+    catch { showToast("图片菜单适配失败，请在插件设置使用链接上传"); }
     if (ActionSheet?.openLazy) {
         cleanups.add(before("openLazy", ActionSheet, ([component, key]) => {
             if (key === "MediaShareActionSheet") patchActionSheet(component, sourceFromMediaSheet);

@@ -29,6 +29,10 @@ function harness() {
         cloneElement: (item, props, ...children) => make(item.type, { ...item.props, key: item.key, ...props }, ...children),
     };
     const actionSheet = { openLazy() {}, hideActionSheet() {} };
+    const mediaActions = { useMediaShareActions: props => props.callbacks };
+    const menus = { ContextMenu: props => props };
+    const originalMediaHook = mediaActions.useMediaShareActions;
+    const originalMenu = menus.ContextMenu;
     const originalOpen = actionSheet.openLazy;
     const patch = (after) => (key, target, callback) => {
         const original = target[key];
@@ -45,9 +49,13 @@ function harness() {
                 listeners.add(cb);
                 return { remove: () => listeners.delete(cb) };
             } },
-        } }, findByProps: () => actionSheet },
+        } }, findByProps: (...props) => {
+            if (props.includes("useMediaShareActions")) return mediaActions;
+            if (props.includes("ContextMenu")) return menus;
+            return actionSheet;
+        } },
         patcher: { before: patch(false), after: patch(true) },
-        ui: { components: { Forms: { FormRow } }, toasts: { showToast() {} } },
+        ui: { components: { Forms: { FormRow } }, toasts: { showToast() {} }, assets: { getAssetIDByName: () => 42 } },
         plugin: { storage: state }, storage: { useProxy() {} },
     };
     const context = {
@@ -62,12 +70,13 @@ function harness() {
     // Exact evaluation shape used by Bunny's Vendetta plugin loader.
     const plugin = vm.runInNewContext(`(vendetta => { return ${bundle}\n})(vendetta)`, context);
     const tree = () => make("outer", {}, make("inner", {}, [make(FormRow, { label: "Save", onPress() {} })]));
-    return { plugin, state, mutations, requests, listeners, intervals, actionSheet, originalOpen, tree };
+    return { plugin, state, mutations, requests, listeners, intervals, actionSheet, originalOpen, tree,
+        mediaActions, menus, originalMediaHook, originalMenu };
 }
 
 test("published manifest enables initial installation and hash-based updates", () => {
     assert.equal(manifest.main, "index.js");
-    assert.equal(manifest.version, "1.1.1");
+    assert.equal(manifest.version, "1.1.2");
     assert.equal(manifest.hash, createHash("sha256").update(bundle).digest("hex"));
     assert.notEqual(undefined, manifest.hash);
 });
@@ -103,6 +112,8 @@ test("built plugin logs in on startup, checks foreground and timer, releases all
     assert.equal(h.intervals.size, 0);
     assert.equal(h.listeners.size, 0);
     assert.equal(h.actionSheet.openLazy, h.originalOpen);
+    assert.equal(h.mediaActions.useMediaShareActions, h.originalMediaHook);
+    assert.equal(h.menus.ContextMenu, h.originalMenu);
 });
 
 test("PNG menu patches frozen React trees without hooks, duplication or unload leaks", async () => {
@@ -125,7 +136,7 @@ test("PNG menu patches frozen React trees without hooks, duplication or unload l
     assert.equal(module.default, render);
 });
 
-test("message menu lists all PNG and JSON attachments and ignores JPEG", async () => {
+test("message menu keeps JSON but does not show the PNG entry in screenshot 1", async () => {
     const h = harness();
     h.plugin.onLoad();
     const module = { default: h.tree };
@@ -134,9 +145,74 @@ test("message menu lists all PNG and JSON attachments and ignores JPEG", async (
     const attachments = ["a.png", "b.json", "c.jpg"].map(filename => ({ filename, url: "https://cdn.discordapp.com/attachments/1/2/" + filename }));
     const result = module.default({ message: { attachments } });
     const rows = result.props.children.props.children;
-    assert.equal(rows.length, 3);
-    assert.equal(rows[1].props.subLabel, "a.png");
-    assert.equal(rows[2].props.subLabel, "b.json");
+    assert.equal(rows.length, 2);
+    assert.equal(rows[1].props.subLabel, "b.json");
+    h.plugin.onUnload();
+});
+
+test("viewer overflow menu inserts CardVault after Save and preserves existing actions", async () => {
+    const h = harness();
+    h.plugin.onLoad();
+    await tick();
+    let ordinarySaves = 0;
+    const callbacks = h.mediaActions.useMediaShareActions({
+        source: { sourceURI: "https://cdn.discordapp.com/attachments/1/2/visible.png?hm=signed" },
+        callbacks: { save: () => ordinarySaves++, share: () => {}, open: () => {}, jump: () => {} },
+    });
+    const items = Object.freeze([
+        Object.freeze({ label: "Save", action: callbacks.save }),
+        Object.freeze({ label: "Share", action: callbacks.share }),
+        Object.freeze({ label: "Open in Browser", action: callbacks.open }),
+        Object.freeze({ label: "Jump to Message", action: callbacks.jump }),
+    ]);
+    const result = h.menus.ContextMenu(Object.freeze({ items }));
+    assert.deepEqual(Array.from(result.items, item => item.label), ["Save", "保存到 CardVault", "Share", "Open in Browser", "Jump to Message"]);
+    assert.equal(items.length, 4);
+    assert.equal(result.items[1].iconSource, 42);
+    assert.equal(h.requests.length, 1);
+    result.items[0].action();
+    assert.equal(ordinarySaves, 1);
+    assert.equal(h.requests.length, 1);
+    result.items[1].action();
+    await tick();
+    assert.equal(h.requests.filter(r => r.url.includes("/attachments/")).length, 1);
+    assert.equal(h.requests.find(r => r.url.includes("/attachments/")).url, "https://cdn.discordapp.com/attachments/1/2/visible.png?hm=signed");
+    assert.equal(h.requests.filter(r => r.url.endsWith("/api/cards/import")).length, 1);
+    assert.equal(h.menus.ContextMenu(result).items.length, 5);
+    h.plugin.onUnload();
+});
+
+test("switching images rebinds callbacks without leaking the entry to JPEG or unrelated menus", async () => {
+    const h = harness();
+    h.plugin.onLoad();
+    await tick();
+    const save = () => {};
+    const items = [{ label: "Save", action: save }];
+    for (const name of ["first.png", "second.png"]) {
+        h.mediaActions.useMediaShareActions({ source: { uri: "https://cdn.discordapp.com/attachments/1/2/" + name }, callbacks: { save } });
+    }
+    const result = h.menus.ContextMenu({ items });
+    result.items[1].action();
+    await tick();
+    assert.equal(h.requests.find(r => r.url.includes("/attachments/")).url, "https://cdn.discordapp.com/attachments/1/2/second.png");
+    h.mediaActions.useMediaShareActions({ source: { uri: "https://cdn.discordapp.com/attachments/1/2/third.jpg" }, callbacks: { save } });
+    assert.equal(h.menus.ContextMenu({ items }).items.length, 1);
+    const unrelated = { items: [{ label: "Save", action: () => {} }, { label: "Share", action: () => {} }] };
+    assert.equal(h.menus.ContextMenu(unrelated), unrelated);
+    h.plugin.onUnload();
+});
+
+test("grouped menus and direct item-returning media hooks retain native menu structure", async () => {
+    const h = harness();
+    h.plugin.onLoad();
+    const callbacks = [{ label: "Save", action: () => {} }, { label: "Share", action: () => {} }];
+    const items = h.mediaActions.useMediaShareActions({ source: { uri: "https://cdn.discordapp.com/attachments/1/2/card.png" }, callbacks });
+    assert.equal(items.length, 3);
+    assert.equal(h.menus.ContextMenu({ items }).items.length, 3);
+    const grouped = h.menus.ContextMenu({ items: [[callbacks[0]], [callbacks[1]]] });
+    assert.equal(grouped.items.length, 2);
+    assert.equal(grouped.items[0].length, 2);
+    assert.equal(grouped.items[1].length, 1);
     h.plugin.onUnload();
 });
 
