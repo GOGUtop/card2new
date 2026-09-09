@@ -1,0 +1,16 @@
+{
+  "name": "CardVault Upload",
+  "version": "1.1.0",
+  "description": "Upload Discord PNG and JSON attachments directly to CardVault.",
+  "authors": [
+    {
+      "name": "Local CardVault integration",
+      "id": "0"
+    }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_upload"
+  },
+  "hash": "a89af9ac7b2d9e52f2fb2c4cef6a159f32a5960361ca0cb9d5fd23b69137bab7"
+}
