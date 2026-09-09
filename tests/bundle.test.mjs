@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import vm from "node:vm";
+import { parseSync } from "@swc/core";
 
 const bundle = await readFile(new URL("../docs/index.js", import.meta.url), "utf8");
 const manifest = JSON.parse(await readFile(new URL("../docs/manifest.json", import.meta.url), "utf8"));
@@ -66,9 +67,23 @@ function harness() {
 
 test("published manifest enables initial installation and hash-based updates", () => {
     assert.equal(manifest.main, "index.js");
-    assert.equal(manifest.version, "1.1.0");
+    assert.equal(manifest.version, "1.1.1");
     assert.equal(manifest.hash, createHash("sha256").update(bundle).digest("hex"));
     assert.notEqual(undefined, manifest.hash);
+});
+
+test("published JavaScript contains no untransformed class or async syntax for Hermes", () => {
+    const visit = node => {
+        if (!node || typeof node !== "object") return;
+        assert.notEqual(node.type, "ClassDeclaration", "Hermes cannot load class declarations");
+        assert.notEqual(node.type, "ClassExpression", "Hermes cannot load class expressions");
+        assert.notEqual(node.type, "AwaitExpression", "async functions must also be transformed");
+        for (const value of Object.values(node)) {
+            if (Array.isArray(value)) value.forEach(visit);
+            else visit(value);
+        }
+    };
+    visit(parseSync(bundle, { syntax: "ecmascript" }));
 });
 
 test("built plugin logs in on startup, checks foreground and timer, releases all on unload", async () => {

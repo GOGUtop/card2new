@@ -1,6 +1,12 @@
 # CardVault Upload for Bunny
 
-Bunny / Vendetta 插件，版本 1.1.0。将 Discord 的 PNG 和 JSON 附件保存到 CardVault。
+Bunny / Vendetta 插件，版本 1.1.1。将 Discord 的 PNG 和 JSON 附件保存到 CardVault。
+
+## 1.1.1 修复说明
+
+修复 1.1.0 保留 ES `class` 导致部分 Discord 使用的 Hermes 引擎无法加载的问题。现对最终打包文件统一转译为 ES5，并通过 Hermes 0.11 编译检查。
+
+已上传过 1.1.0 的用户：将新版压缩包中的文件覆盖到同一个仓库并提交，尤其要同步更新 `docs/index.js` 和 `docs/manifest.json`。等待 Pages 重新部署完成，然后在 Bunny 插件信息页面检查更新；如果仍使用缓存，可卸载这个插件并用原 Pages 链接重新安装。不需要新建仓库，也不需要重新设置 Pages。
 
 本版本按用户要求内置账号 `card2` 和密码 `2`。首次启动自动登录，令牌保存在本机；启动、回到前台和前台运行每 5 分钟检查连接，遇到 401 自动登录并重试一次。无需手动输入账号密码。
 
@@ -55,4 +61,6 @@ npm test
 
 ## 验证范围
 
-已进行本地构建、登录/过期重试/上传模拟测试，以及 Bunny 加载格式和菜单模拟测试。未在用户的 iPhone / Bunny 上实机测试，也没有向线上卡库上传测试数据。菜单适配以公开 Bunny 和 Vendetta 源码为依据，Discord 版本更新可能需要进一步调整。
+已进行本地构建、登录/过期重试/上传模拟测试，以及 Bunny 加载格式和菜单模拟测试，并通过 Hermes 0.11 编译检查。未在用户的 iPhone / Bunny 上实机测试，也没有向线上卡库上传测试数据。菜单适配以公开 Bunny 和 Vendetta 源码为依据，Discord 版本更新可能需要进一步调整。
+
+开发时可运行 `npm run test:hermes -- 你的hermesc可执行文件路径`，对每次构建执行真正的 Hermes 编译检查。

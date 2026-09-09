@@ -4,6 +4,7 @@ import { rollup } from "rollup";
 import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import esbuild from "rollup-plugin-esbuild";
+import { parseSync, printSync, transform } from "@swc/core";
 
 const external = (id) => id === "react" || id === "react-native" || id.startsWith("@vendetta/");
 const bundle = await rollup({
@@ -22,6 +23,28 @@ await bundle.write({
     format: "iife",
     compact: true,
     exports: "named",
+    plugins: [{
+        name: "hermes-compatible-syntax",
+        async renderChunk(code) {
+            // Hermes in older Discord builds cannot compile ES class statements.
+            // Transform the final bundle so helpers and dependencies are covered too.
+            const result = await transform(code, {
+                jsc: { parser: { syntax: "ecmascript" }, target: "es5", externalHelpers: false },
+                minify: true,
+                sourceMaps: false,
+            });
+            // Keep inserted helpers inside a single expression for Bunny's `return <plugin>` loader.
+            const transformed = parseSync(result.code, { syntax: "ecmascript" });
+            const last = transformed.body.pop();
+            if (last?.type !== "ExpressionStatement") throw new Error("Expected a plugin IIFE expression");
+            const wrapper = parseSync("(function(){})()", { syntax: "ecmascript" });
+            wrapper.body[0].expression.callee.expression.body.stmts = [
+                ...transformed.body,
+                { type: "ReturnStatement", span: last.span, argument: last.expression },
+            ];
+            return printSync(wrapper, { minify: true });
+        },
+    }],
     globals(id) {
         if (id.startsWith("@vendetta/")) return id.substring(1).replaceAll("/", ".");
         if (id === "react") return "React";
