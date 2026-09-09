@@ -1,0 +1,16 @@
+{
+  "name": "消息文字选择",
+  "description": "长按消息打开全文选字面板，保留原消息菜单。",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "GOGUtop",
+      "id": "0"
+    }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_copy_message"
+  },
+  "hash": "14427e380f9fedb88c96d866de3f2ad66418526bd9e77a5b0e7a18a59efa0c7c"
+}

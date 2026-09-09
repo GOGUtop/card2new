@@ -1,0 +1,19 @@
+{
+  "Safe Mode": "安全模式",
+  "Load Bunny without loading add-ons": "加载 Bunny，但暂不加载扩展",
+  "Reload now?": "现在重新加载吗？",
+  "Reload Now": "立即重新加载",
+  "Later": "稍后",
+  "Loader config": "加载器配置",
+  "Other": "其他",
+  "Which ErrorBoundary do you want to trip?": "要触发哪个界面的错误恢复测试？",
+  "Unproxied Plugins": "未经过代理的插件",
+  "Install a plugin": "安装插件",
+  "Hold On!": "请注意",
+  "You're trying to install a plugin from an unproxied external source. This means you're trusting the creator to run their code in this app without your knowledge. Are you sure you want to continue?": "你正在从未经代理的外部来源安装插件。这意味着你信任作者在此应用中运行代码，而这些代码的行为可能不为你所知。确定继续吗？",
+  "Continue": "继续",
+  "Install Failed": "安装失败",
+  "Okay": "确定",
+  "Cancel": "取消",
+  "Copy URL": "复制链接"
+}

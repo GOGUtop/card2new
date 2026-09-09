@@ -1,0 +1,27 @@
+{
+  "upstream_url": "https://raw.githubusercontent.com/bunny-mod/builds/main/bunny.min.js",
+  "upstream_sha256": "f12a2d60cd8007756a22d5a72a473195cc5548b318c306d5ae7a543b9dac995c",
+  "output_sha256": "7d092bb06840045c02decab937fba73234188ec98df0832b8a2b3c565aa826b0",
+  "change": "Replace Bunny default UI dictionary and explicit UI text properties with Simplified Chinese; keep loader and plugin APIs unchanged.",
+  "translated_keys": 113,
+  "ui_literal_changes": {
+    "Safe Mode": 1,
+    "Load Bunny without loading add-ons": 1,
+    "Reload now?": 1,
+    "Reload Now": 1,
+    "Later": 1,
+    "Cancel": 2,
+    "Copy URL": 1,
+    "Unproxied Plugins": 1,
+    "Install a plugin": 1,
+    "Hold On!": 1,
+    "You're trying to install a plugin from an unproxied external source. This means you're trusting the creator to run their code in this app without your knowledge. Are you sure you want to continue?": 1,
+    "Continue": 1,
+    "Install Failed": 1,
+    "Okay": 1,
+    "Loader config": 1,
+    "Other": 1,
+    "Which ErrorBoundary do you want to trip?": 1
+  },
+  "device_tested": false
+}
