@@ -1,0 +1,16 @@
+{
+  "name": "消息文字选择",
+  "description": "保留原长按菜单，点击自由选择文字后进入全屏原生选字页面。",
+  "version": "1.1.0",
+  "authors": [
+    {
+      "name": "GOGUtop",
+      "id": "0"
+    }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_copy_message"
+  },
+  "hash": "275c869cf1d989a9bec61042d83a207fee3bcb1c14cb3a652a693ef4f46517ed"
+}
