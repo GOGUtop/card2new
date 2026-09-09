@@ -1,8 +1,0 @@
-{
-  "complete_ast_comparison_passed": true,
-  "changes": "Only the default language dictionary, approved UI text properties, and a version marker differ.",
-  "icu_messages_validated": 113,
-  "ui_literal_occurrences": 18,
-  "output_sha256": "7d092bb06840045c02decab937fba73234188ec98df0832b8a2b3c565aa826b0",
-  "device_tested": false
-}
