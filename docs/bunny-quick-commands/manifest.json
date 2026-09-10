@@ -1,7 +1,7 @@
 {
   "name": "回复框快捷命令",
   "description": "在 Discord 回复输入框旁直接填入 /回顶 和 /下载。",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authors": [
     {
       "name": "GOGUtop",
